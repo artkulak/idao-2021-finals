@@ -1,0 +1,24 @@
+{
+    "os": "Linux-4.19.0-16-cloud-amd64-x86_64-with-debian-10.9",
+    "python": "3.7.10",
+    "heartbeatAt": "2021-04-17T12:19:41.256108",
+    "startedAt": "2021-04-17T12:19:38.428341",
+    "docker": null,
+    "cpu_count": 16,
+    "cuda": null,
+    "args": [
+        "-f",
+        "/home/jupyter/.local/share/jupyter/runtime/kernel-50a8da82-ffab-44ba-b1e4-c2b335d52e57.json"
+    ],
+    "state": "running",
+    "program": "idao-2021-finals/Baseline.ipynb",
+    "root": "/home/jupyter/idao-2021-finals",
+    "git": {
+        "remote": "https://github.com/artkulak/idao-2021-finals.git",
+        "commit": "2bfe37853cb9e7c9e6ecc570e9fe7e894d60c077"
+    },
+    "email": "art_kulak@mail.ru",
+    "host": "idao-2021-finals-1",
+    "username": "jupyter",
+    "executable": "/opt/conda/bin/python"
+}

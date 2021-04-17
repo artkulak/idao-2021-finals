@@ -1,0 +1,230 @@
+diff --git a/Baseline.ipynb b/Baseline.ipynb
+index 025c660..708d833 100644
+--- a/Baseline.ipynb
++++ b/Baseline.ipynb
+@@ -3,7 +3,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 32,
+-   "id": "1e4e9900",
++   "id": "b65f3cb0",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -51,7 +51,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 33,
+-   "id": "6c9f5a56",
++   "id": "1b631f4c",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -64,7 +64,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 34,
+-   "id": "b9d4e365",
++   "id": "94ac4eb0",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -118,7 +118,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 35,
+-   "id": "20869ead",
++   "id": "597e1acd",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -155,7 +155,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "3755974b",
++   "id": "986640e5",
+    "metadata": {},
+    "source": [
+     "## Data prep"
+@@ -164,7 +164,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 36,
+-   "id": "e4f9708f",
++   "id": "87405d7c",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -174,7 +174,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "b9dd2659",
++   "id": "74ccb077",
+    "metadata": {},
+    "source": [
+     "## Train"
+@@ -183,7 +183,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 37,
+-   "id": "0223aa91",
++   "id": "a084ec51",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -222,18 +222,29 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": null,
+-   "id": "f04bbc87",
++   "execution_count": 39,
++   "id": "79b3343b",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "data": {
++      "text/plain": [
++       "LGBMClassifier()"
++      ]
++     },
++     "execution_count": 39,
++     "metadata": {},
++     "output_type": "execute_result"
++    }
++   ],
+    "source": [
+     "model.fit(X, Y)"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": null,
+-   "id": "876746b6",
++   "execution_count": 40,
++   "id": "41f83e50",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -250,13 +261,105 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": null,
+-   "id": "61781ec2",
++   "execution_count": 41,
++   "id": "404c3d0f",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "data": {
++      "text/html": [
++       "<br/>Waiting for W&B process to finish, PID 6482<br/>Program ended successfully."
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "application/vnd.jupyter.widget-view+json": {
++       "model_id": "",
++       "version_major": 2,
++       "version_minor": 0
++      },
++      "text/plain": [
++       "VBox(children=(Label(value=' 0.01MB of 0.01MB uploaded (0.00MB deduped)\\r'), FloatProgress(value=1.0, max=1.0)…"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Find user logs for this run at: <code>/home/jupyter/idao-2021-finals/wandb/run-20210417_090709-38amsyrb/logs/debug.log</code>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Find internal logs for this run at: <code>/home/jupyter/idao-2021-finals/wandb/run-20210417_090709-38amsyrb/logs/debug-internal.log</code>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "<h3>Run summary:</h3><br/><style>\n",
++       "    table.wandb td:nth-child(1) { padding: 0 10px; text-align: right }\n",
++       "    </style><table class=\"wandb\">\n",
++       "<tr><td>validation_accuracy</td><td>0.8506</td></tr></table>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "\n",
++       "                    <br/>Synced <strong style=\"color:#cdcd00\">2021-04-17_09:06:58</strong>: <a href=\"https://wandb.ai/artkulak/idao-2021-finals/runs/38amsyrb\" target=\"_blank\">https://wandb.ai/artkulak/idao-2021-finals/runs/38amsyrb</a><br/>\n",
++       "                "
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    }
++   ],
+    "source": [
+     "if USE_WANDB:\n",
+-    "    run"
++    "    run.finish()"
+    ]
+   }
+  ],
+diff --git a/wandb/latest-run b/wandb/latest-run
+index 60db497..741d801 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20210417_090709-38amsyrb
+\ No newline at end of file
++run-20210417_100355-1qo0ax9z
+\ No newline at end of file

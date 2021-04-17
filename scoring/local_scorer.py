@@ -1,8 +1,8 @@
-from scorer import calculate_metric
+from .scorer import calculate_metric
 import pandas as pd
 
-TMP_SUBMISSION = 'submission/test_submission.csv'
-TMP_TRUTH = 'submission/test_truth.csv'
+TMP_SUBMISSION = '../output/scoring/test_submission.csv'
+TMP_TRUTH = '../output/scoring/test_truth.csv'
 
 TARGET_COLUMNS = ['sale_flg', 'sale_amount']
 TRUTH_COLUMNS = ['contacts', 'sale_flg', 'sale_amount']
@@ -19,8 +19,8 @@ def write_submission(Y_pred, Y_test):
 def write_truth(test_df):
     assert test_df.index.name == 'client_id'
     truth_test = test_df[TRUTH_COLUMNS]
-    truth_test['split'] = 'public'
-    truth_test.iloc[:truth_test.shape[0] // 2].split = 'private'
+    truth_test.loc[:, 'split'] = 'private'
+    truth_test.iloc[:truth_test.shape[0] // 3].split = 'public'
     truth_test.to_csv(TMP_TRUTH)
 
 def get_score(test_df, Y_pred, Y_test):

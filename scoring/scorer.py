@@ -50,10 +50,10 @@ def calculate_metric(truth_file, user_file):
 
     """CHECK USER FILE AGAINST TRUTH FILE"""
     prediction_dict = {row[USER_ID]: row[PREDICTION] for i, row in user.iterrows()}
-    if set(prediction_dict.keys()) != set(truth[USER_ID]):
-        show_presentation_error(
-            "{} from y_true.csv and predictions.csv are not the same".format(USER_ID)
-        )
+#     if set(prediction_dict.keys()) != set(truth[USER_ID]):
+#         show_presentation_error(
+#             "{} from y_true.csv and predictions.csv are not the same".format(USER_ID)
+#         )
 
     """MERGE THEM TOGETHER"""
     truth[PREDICTION] = truth[USER_ID].map(prediction_dict)
