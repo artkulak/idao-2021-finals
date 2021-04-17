@@ -1,26 +1,27 @@
 import configparser
 import pathlib as path
+import logging
 
 import numpy as np
 import pandas as pd
 import joblib
 
+from SimpleModel import SimpleModel
+
+
+logging.basicConfig(format='%(asctime)s %(message)s', filename='training.log', level=logging.DEBUG)
+
 
 def main(cfg):
     # parse config
     DATA_FOLDER = path.Path(cfg["DATA"]["DatasetPath"])
-    USER_ID = cfg["COLUMNS"]["USER_ID"]
-    PREDICTION = cfg["COLUMNS"]["PREDICTION"]
     MODEL_PATH = path.Path(cfg["MODEL"]["FilePath"])
-    SUBMISSION_FILE = path.Path(cfg["SUBMISSION"]["FilePath"])
     # do something with data
     X = pd.read_csv(f'{DATA_FOLDER}/{cfg["DATA"]["UsersFile"]}')
-    model = joblib.load(MODEL_PATH)
-    
-    submission = X[[USER_ID]].copy()
-    # submission[PREDICTION] = np.random.choice([0, 1], len(submission))
-    submission[PREDICTION] = (model.predict_proba(X)[:, 1] > 0.1).astype(int)
-    submission.to_csv(SUBMISSION_FILE, index=False)
+    model = SimpleModel()
+    model.fit(X[['feature_1']], X['sale_flg'])
+    joblib.dump(model, MODEL_PATH)
+    logging.info("model was trained")
 
 
 if __name__ == "__main__":

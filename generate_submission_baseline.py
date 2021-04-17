@@ -6,6 +6,9 @@ import pandas as pd
 import joblib
 
 
+TARGET_COLUMNS = ['sale_flg', 'sale_amount', 'contacts']
+
+
 def main(cfg):
     # parse config
     DATA_FOLDER = path.Path(cfg["DATA"]["DatasetPath"])
@@ -13,13 +16,15 @@ def main(cfg):
     PREDICTION = cfg["COLUMNS"]["PREDICTION"]
     MODEL_PATH = path.Path(cfg["MODEL"]["FilePath"])
     SUBMISSION_FILE = path.Path(cfg["SUBMISSION"]["FilePath"])
+    
     # do something with data
-    X = pd.read_csv(f'{DATA_FOLDER}/{cfg["DATA"]["UsersFile"]}')
+    test_data = pd.read_csv(f'{DATA_FOLDER}/{cfg["DATA"]["UsersFile"]}')
     model = joblib.load(MODEL_PATH)
     
-    submission = X[[USER_ID]].copy()
-    # submission[PREDICTION] = np.random.choice([0, 1], len(submission))
-    submission[PREDICTION] = (model.predict_proba(X)[:, 1] > 0.1).astype(int)
+
+    X = test_data.drop(columns = TARGET_COLUMNS + [USER_ID])
+    submission = test_data[[USER_ID]].copy()
+    submission[PREDICTION] = model.predict(X)
     submission.to_csv(SUBMISSION_FILE, index=False)
 
 
