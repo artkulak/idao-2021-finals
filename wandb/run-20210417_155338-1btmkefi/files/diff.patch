@@ -1,0 +1,945 @@
+diff --git a/Baseline.ipynb b/Baseline.ipynb
+index 1746168..1a6430f 100644
+--- a/Baseline.ipynb
++++ b/Baseline.ipynb
+@@ -2,8 +2,8 @@
+  "cells": [
+   {
+    "cell_type": "code",
+-   "execution_count": 1,
+-   "id": "01fa0131",
++   "execution_count": 58,
++   "id": "7a7e31e8",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -19,6 +19,7 @@
+     "import os\n",
+     "import random\n",
+     "import joblib\n",
++    "import shutil\n",
+     "\n",
+     "from sklearn.model_selection import KFold\n",
+     "from sklearn.model_selection import train_test_split\n",
+@@ -41,7 +42,7 @@
+     "FIXED_SEEDS = [948, 534, 432, 597, 103, 21, 2242, 17, 20, 29]\n",
+     "\n",
+     "RANDOM_SEED = 4444\n",
+-    "USE_WANDB = False\n",
++    "USE_WANDB = True\n",
+     "CURRENT_TIME = str(datetime.datetime.now()).replace(' ', '_').split('.')[0]\n",
+     "\n",
+     "def seed_everything(seed=1234):\n",
+@@ -53,8 +54,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 151,
+-   "id": "32c5f64d",
++   "execution_count": 59,
++   "id": "feb5c125",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -64,16 +65,36 @@
+     "\n",
+     "n_seed = 3\n",
+     "n_fold = 3\n",
+-    "prediction_threshold = 0.2\n",
+-    "retrain_after_valid = True"
++    "prediction_threshold = 0.3\n",
++    "retrain_after_valid = True\n",
++    "make_submission = False"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 3,
+-   "id": "a2e1037e",
++   "execution_count": 60,
++   "id": "cb6a126c",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "data": {
++      "text/html": [
++       "\n",
++       "                Tracking run with wandb version 0.10.26<br/>\n",
++       "                Syncing run <strong style=\"color:#cdcd00\">2021-04-17_15:53:08</strong> to <a href=\"https://wandb.ai\" target=\"_blank\">Weights & Biases</a> <a href=\"https://docs.wandb.com/integrations/jupyter.html\" target=\"_blank\">(Documentation)</a>.<br/>\n",
++       "                Project page: <a href=\"https://wandb.ai/artkulak/idao-2021-finals\" target=\"_blank\">https://wandb.ai/artkulak/idao-2021-finals</a><br/>\n",
++       "                Run page: <a href=\"https://wandb.ai/artkulak/idao-2021-finals/runs/lrg5wnjd\" target=\"_blank\">https://wandb.ai/artkulak/idao-2021-finals/runs/lrg5wnjd</a><br/>\n",
++       "                Run data is saved locally in <code>/home/jupyter/idao-2021-finals/wandb/run-20210417_155309-lrg5wnjd</code><br/><br/>\n",
++       "            "
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    }
++   ],
+    "source": [
+     "if USE_WANDB:\n",
+     "    wandb.login()\n",
+@@ -82,8 +103,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 4,
+-   "id": "2aa8d28b",
++   "execution_count": 61,
++   "id": "f34abeeb",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -98,8 +119,8 @@
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "CPU times: user 6.58 s, sys: 1.17 s, total: 7.75 s\n",
+-      "Wall time: 7.75 s\n"
++      "CPU times: user 6.61 s, sys: 540 ms, total: 7.15 s\n",
++      "Wall time: 7.14 s\n"
+      ]
+     }
+    ],
+@@ -120,8 +141,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": null,
+-   "id": "53f871ee",
++   "execution_count": 62,
++   "id": "ab475576",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -130,7 +151,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "5b72babd",
++   "id": "1bef405d",
+    "metadata": {},
+    "source": [
+     "## Data prep"
+@@ -138,257 +159,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 197,
+-   "id": "e68e424b",
+-   "metadata": {},
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/html": [
+-       "<div>\n",
+-       "<style scoped>\n",
+-       "    .dataframe tbody tr th:only-of-type {\n",
+-       "        vertical-align: middle;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe tbody tr th {\n",
+-       "        vertical-align: top;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe thead th {\n",
+-       "        text-align: right;\n",
+-       "    }\n",
+-       "</style>\n",
+-       "<table border=\"1\" class=\"dataframe\">\n",
+-       "  <thead>\n",
+-       "    <tr style=\"text-align: right;\">\n",
+-       "      <th></th>\n",
+-       "      <th>client_id</th>\n",
+-       "      <th>agrmnt_start_dt</th>\n",
+-       "      <th>agrmnt_close_dt</th>\n",
+-       "      <th>crncy_cd</th>\n",
+-       "      <th>agrmnt_rate_active</th>\n",
+-       "      <th>agrmnt_rate_passive</th>\n",
+-       "      <th>agrmnt_sum_rur</th>\n",
+-       "      <th>prod_type_name</th>\n",
+-       "    </tr>\n",
+-       "  </thead>\n",
+-       "  <tbody>\n",
+-       "    <tr>\n",
+-       "      <th>0</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2010-08-12</td>\n",
+-       "      <td>2014-10-30</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>1</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2013-02-15</td>\n",
+-       "      <td>2013-08-16</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>2</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2013-08-16</td>\n",
+-       "      <td>2014-02-14</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>3</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>4</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>...</th>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109011</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109012</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2018-07-03</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>3.25</td>\n",
+-       "      <td>13089.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109013</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109014</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-23</td>\n",
+-       "      <td>2012-09-18</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>7.00</td>\n",
+-       "      <td>5403.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109015</th>\n",
+-       "      <td>-4636514022054340174</td>\n",
+-       "      <td>2014-06-09</td>\n",
+-       "      <td>2017-07-31</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>18.75</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>3299986.0</td>\n",
+-       "      <td>Mortgage plus</td>\n",
+-       "    </tr>\n",
+-       "  </tbody>\n",
+-       "</table>\n",
+-       "<p>109016 rows × 8 columns</p>\n",
+-       "</div>"
+-      ],
+-      "text/plain": [
+-       "                  client_id agrmnt_start_dt agrmnt_close_dt  crncy_cd  \\\n",
+-       "0       7513301859607023584      2010-08-12      2014-10-30     810.0   \n",
+-       "1       7513301859607023584      2013-02-15      2013-08-16     810.0   \n",
+-       "2       7513301859607023584      2013-08-16      2014-02-14     810.0   \n",
+-       "3       7513301859607023584      2015-07-12      2015-07-12     810.0   \n",
+-       "4       7513301859607023584      2015-07-12      2015-07-12     810.0   \n",
+-       "...                     ...             ...             ...       ...   \n",
+-       "109011 -8242641659611256965      2011-08-10      2011-08-10     810.0   \n",
+-       "109012 -8242641659611256965      2011-08-10      2018-07-03     810.0   \n",
+-       "109013 -8242641659611256965      2011-08-10      2011-08-10     810.0   \n",
+-       "109014 -8242641659611256965      2011-08-23      2012-09-18     810.0   \n",
+-       "109015 -4636514022054340174      2014-06-09      2017-07-31     810.0   \n",
+-       "\n",
+-       "        agrmnt_rate_active  agrmnt_rate_passive  agrmnt_sum_rur  \\\n",
+-       "0                      NaN                  NaN             0.0   \n",
+-       "1                      NaN                  NaN             0.0   \n",
+-       "2                      NaN                  NaN             0.0   \n",
+-       "3                      NaN                  NaN             0.0   \n",
+-       "4                      NaN                  NaN             0.0   \n",
+-       "...                    ...                  ...             ...   \n",
+-       "109011                 NaN                  NaN             0.0   \n",
+-       "109012                 NaN                 3.25         13089.0   \n",
+-       "109013                 NaN                  NaN             0.0   \n",
+-       "109014                 NaN                 7.00          5403.0   \n",
+-       "109015               18.75                  NaN       3299986.0   \n",
+-       "\n",
+-       "        prod_type_name  \n",
+-       "0       Cash on demand  \n",
+-       "1       Cash on demand  \n",
+-       "2       Cash on demand  \n",
+-       "3       Cash on demand  \n",
+-       "4       Cash on demand  \n",
+-       "...                ...  \n",
+-       "109011     POST OFFICE  \n",
+-       "109012     POST OFFICE  \n",
+-       "109013     POST OFFICE  \n",
+-       "109014     POST OFFICE  \n",
+-       "109015   Mortgage plus  \n",
+-       "\n",
+-       "[109016 rows x 8 columns]"
+-      ]
+-     },
+-     "execution_count": 197,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "source": [
+-    "deals"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 198,
+-   "id": "3b3d432f",
+-   "metadata": {},
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/plain": [
+-       "client_id\n",
+-       "-9221941791080978530    0.000000e+00\n",
+-       "-9220369594510368140    6.634224e+07\n",
+-       "-9220236243053692422    0.000000e+00\n",
+-       "-9220233431709087652    9.242713e+04\n",
+-       "-9219699286371310531    0.000000e+00\n",
+-       "                            ...     \n",
+-       " 9218801691173598782    2.723500e+03\n",
+-       " 9219024469308275500    0.000000e+00\n",
+-       " 9219968212912398941    0.000000e+00\n",
+-       " 9220335314469087849    9.004667e+03\n",
+-       " 9223107459698100059    0.000000e+00\n",
+-       "Name: agrmnt_sum_rur, Length: 18652, dtype: float64"
+-      ]
+-     },
+-     "execution_count": 198,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "source": [
+-    "deals.groupby('client_id')['agrmnt_sum_rur'].mean()"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 199,
+-   "id": "04fb0df4",
++   "execution_count": 63,
++   "id": "f5bf2a25",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -439,28 +211,28 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 200,
+-   "id": "f4f41918",
++   "execution_count": 64,
++   "id": "bd57023c",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "# data merge\n",
+-    "\n",
++    "data = funnel.copy()\n",
+     "data = funnel.merge(client, on=['client_id'])"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 201,
+-   "id": "7ec45aaa",
++   "execution_count": 65,
++   "id": "19d93588",
+    "metadata": {},
+    "outputs": [
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "CPU times: user 38 s, sys: 196 ms, total: 38.2 s\n",
+-      "Wall time: 38.1 s\n"
++      "CPU times: user 13 µs, sys: 0 ns, total: 13 µs\n",
++      "Wall time: 16.7 µs\n"
+      ]
+     }
+    ],
+@@ -468,40 +240,52 @@
+     "%%time\n",
+     "# create features\n",
+     "\n",
+-    "data = create_features_transactions(data)\n",
+-    "data = create_feautures_payments(data)"
++    "# data = create_features_transactions(data)\n",
++    "# data = create_feautures_payments(data)\n",
++    "# data = create_features_deals(data)"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 212,
+-   "id": "879628ba",
++   "execution_count": 66,
++   "id": "6cf46c29",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+-    "data = create_features_deals(data)"
++    "try:\n",
++    "    os.mkdir(OUTPUT_PATH / 'preprocessors')\n",
++    "except:\n",
++    "    shutil.rmtree(OUTPUT_PATH / 'preprocessors')\n",
++    "    os.mkdir(OUTPUT_PATH / 'preprocessors')"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 213,
+-   "id": "bf6b5886",
++   "execution_count": 67,
++   "id": "6ff85629",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "# data encode\n",
+     "\n",
+-    "le = LabelEncoder()\n",
+-    "fill_cols = ['gender', 'citizenship', 'education', 'job_type', 'most_common_txn_comment_1', 'most_common_txn_city', 'most_common_txn_country']\n",
+-    "for col in fill_cols:\n",
+-    "    data[col] = le.fit_transform(data[col].astype(str))\n",
+-    "    joblib.dump(le, OUTPUT_PATH / 'preprocessors' / f'{col}.pkl')"
++    "fill_cols = ['gender', 'citizenship', 'education', 'job_type']\n",
++    "for c in fill_cols:\n",
++    "    col_type = data[c].dtype\n",
++    "    if col_type == 'object' or col_type.name == 'category':\n",
++    "        data[c] = data[c].astype('category')\n",
++    "# for col in fill_cols:\n",
++    "#     try:\n",
++    "#         le = LabelEncoder()\n",
++    "#         data[col] = le.fit_transform(data[col].astype(str))\n",
++    "#         joblib.dump(le, OUTPUT_PATH / 'preprocessors' / f'{col}.pkl')\n",
++    "#     except:\n",
++    "#         print(f'{col} is missing')"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 214,
+-   "id": "3b7b4e1b",
++   "execution_count": 68,
++   "id": "99baa7cf",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -511,7 +295,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "a3e970ff",
++   "id": "db41242c",
+    "metadata": {},
+    "source": [
+     "## Train"
+@@ -519,8 +303,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 215,
+-   "id": "946efecc",
++   "execution_count": 69,
++   "id": "3627c10f",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -529,19 +313,13 @@
+     "    os.mkdir(OUTPUT_PATH / 'models')\n",
+     "except:\n",
+     "    shutil.rmtree(OUTPUT_PATH / 'models')\n",
+-    "    os.mkdir(OUTPUT_PATH / 'models')\n",
+-    "    \n",
+-    "try:\n",
+-    "    os.mkdir(OUTPUT_PATH / 'preprocessors')\n",
+-    "except:\n",
+-    "    shutil.rmtree(OUTPUT_PATH / 'preprocessors')\n",
+-    "    os.mkdir(OUTPUT_PATH / 'preprocessors')"
++    "    os.mkdir(OUTPUT_PATH / 'models')"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 216,
+-   "id": "3b58eae9",
++   "execution_count": 70,
++   "id": "56db7a3b",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -550,7 +328,7 @@
+     "    \n",
+     "    params = {\n",
+     "              \"n_jobs\":-1,\n",
+-    "              \"random_state\": seed\n",
++    "              \"random_state\": seed,\n",
+     "              }\n",
+     "    \n",
+     "    \n",
+@@ -567,8 +345,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 217,
+-   "id": "2e32bdc6",
++   "execution_count": 71,
++   "id": "1b351352",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -576,25 +354,169 @@
+      "output_type": "stream",
+      "text": [
+       "Seed: 948, 1/3\n",
+-      "# Fold: 1/3 (seed: 1/3)\n",
++      "# Fold: 1/3 (seed: 1/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 2/3 (seed: 1/3)\n",
++      "# Fold: 2/3 (seed: 1/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 3/3 (seed: 1/3)\n",
++      "# Fold: 3/3 (seed: 1/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+       "Seed: 534, 2/3\n",
+-      "# Fold: 1/3 (seed: 2/3)\n",
++      "# Fold: 1/3 (seed: 2/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 2/3 (seed: 2/3)\n",
++      "# Fold: 2/3 (seed: 2/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 3/3 (seed: 2/3)\n",
++      "# Fold: 3/3 (seed: 2/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+       "Seed: 432, 3/3\n",
+-      "# Fold: 1/3 (seed: 3/3)\n",
++      "# Fold: 1/3 (seed: 3/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 2/3 (seed: 3/3)\n",
++      "# Fold: 2/3 (seed: 3/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n",
+-      "# Fold: 3/3 (seed: 3/3)\n",
++      "# Fold: 3/3 (seed: 3/3)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1433: UserWarning: Overriding the parameters from Reference Dataset.\n",
++      "  _log_warning('Overriding the parameters from Reference Dataset.')\n",
++      "/opt/conda/lib/python3.7/site-packages/lightgbm/basic.py:1245: UserWarning: categorical_column in param dict is overridden.\n",
++      "  _log_warning('{} in param dict is overridden.'.format(cat_alias))\n"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
+       "predict on oof...  done.\n"
+      ]
+     }
+@@ -638,8 +560,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 218,
+-   "id": "c1241f23",
++   "execution_count": 72,
++   "id": "6fc41f92",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -655,8 +577,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 219,
+-   "id": "5511266f",
++   "execution_count": 73,
++   "id": "4a0d2019",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -669,8 +591,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 220,
+-   "id": "03fca335",
++   "execution_count": 74,
++   "id": "27219654",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -710,17 +632,17 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 221,
+-   "id": "f6669fe9",
++   "execution_count": 75,
++   "id": "befe13f7",
+    "metadata": {},
+    "outputs": [
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "Public ANIC 5365.358979905113 Private ANIC 5653.409841613172\n",
+-      "ANIC 5557.392887710485\n",
+-      "Accuracy score: 0.8324495301888548\n"
++      "Public ANIC 5101.916892269054 Private ANIC 5454.46717834217\n",
++      "ANIC 5336.950416317797\n",
++      "Accuracy score: 0.8547306726207089\n"
+      ]
+     }
+    ],
+@@ -733,33 +655,137 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 211,
+-   "id": "2947797d",
++   "execution_count": 76,
++   "id": "335be812",
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "if retrain_after_valid:\n",
++    "    running_train(X, Y, None, None, i_fold=-1, seed=4444)"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 77,
++   "id": "07e27f94",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "if USE_WANDB:\n",
+     "    wandb.run.summary[\"validation_accuracy\"] = validation_accuracy\n",
+-    "    wandb.run.summary[\"anic\"] = (public_score + private_score) / 2"
++    "    wandb.run.summary[\"anic\"] = 1/3*public_score+ 2/3 * private_score"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 22,
+-   "id": "da160a13",
++   "execution_count": 78,
++   "id": "78576ed5",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+-    "if retrain_after_valid:\n",
+-    "    running_train(X, Y, None, None, i_fold=-1, seed=4444)"
++    "if make_submission:\n",
++    "    public_anic = float(input())\n",
++    "    wandb.run.summary[\"public_anic\"] = public_anic"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 23,
+-   "id": "b4fdd17c",
++   "execution_count": 79,
++   "id": "eadf76df",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "data": {
++      "text/html": [
++       "<br/>Waiting for W&B process to finish, PID 26712<br/>Program ended successfully."
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "application/vnd.jupyter.widget-view+json": {
++       "model_id": "",
++       "version_major": 2,
++       "version_minor": 0
++      },
++      "text/plain": [
++       "VBox(children=(Label(value=' 0.03MB of 0.03MB uploaded (0.00MB deduped)\\r'), FloatProgress(value=1.0, max=1.0)…"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Find user logs for this run at: <code>/home/jupyter/idao-2021-finals/wandb/run-20210417_155309-lrg5wnjd/logs/debug.log</code>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Find internal logs for this run at: <code>/home/jupyter/idao-2021-finals/wandb/run-20210417_155309-lrg5wnjd/logs/debug-internal.log</code>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "<h3>Run summary:</h3><br/><style>\n",
++       "    table.wandb td:nth-child(1) { padding: 0 10px; text-align: right }\n",
++       "    </style><table class=\"wandb\">\n",
++       "<tr><td>validation_accuracy</td><td>0.85473</td></tr><tr><td>anic</td><td>5336.95042</td></tr></table>"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)"
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    },
++    {
++     "data": {
++      "text/html": [
++       "\n",
++       "                    <br/>Synced <strong style=\"color:#cdcd00\">2021-04-17_15:53:08</strong>: <a href=\"https://wandb.ai/artkulak/idao-2021-finals/runs/lrg5wnjd\" target=\"_blank\">https://wandb.ai/artkulak/idao-2021-finals/runs/lrg5wnjd</a><br/>\n",
++       "                "
++      ],
++      "text/plain": [
++       "<IPython.core.display.HTML object>"
++      ]
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    }
++   ],
+    "source": [
+     "if USE_WANDB:\n",
+     "    run.finish()"
+diff --git a/wandb/latest-run b/wandb/latest-run
+index 84eec06..3ed9e21 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20210417_121938-1m2lz99f
+\ No newline at end of file
++run-20210417_155338-1btmkefi
+\ No newline at end of file

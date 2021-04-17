@@ -1,0 +1,576 @@
+diff --git a/Baseline.ipynb b/Baseline.ipynb
+index 1746168..361393f 100644
+--- a/Baseline.ipynb
++++ b/Baseline.ipynb
+@@ -3,7 +3,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 1,
+-   "id": "01fa0131",
++   "id": "a06e1414",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -53,8 +53,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 151,
+-   "id": "32c5f64d",
++   "execution_count": 32,
++   "id": "9d41a0e2",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -65,13 +65,14 @@
+     "n_seed = 3\n",
+     "n_fold = 3\n",
+     "prediction_threshold = 0.2\n",
+-    "retrain_after_valid = True"
++    "retrain_after_valid = True\n",
++    "make_submission = True"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 3,
+-   "id": "a2e1037e",
++   "id": "639911fb",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -83,7 +84,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 4,
+-   "id": "2aa8d28b",
++   "id": "628bff32",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -98,8 +99,8 @@
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "CPU times: user 6.58 s, sys: 1.17 s, total: 7.75 s\n",
+-      "Wall time: 7.75 s\n"
++      "CPU times: user 6.59 s, sys: 1.57 s, total: 8.17 s\n",
++      "Wall time: 8.16 s\n"
+      ]
+     }
+    ],
+@@ -120,8 +121,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": null,
+-   "id": "53f871ee",
++   "execution_count": 5,
++   "id": "45a5945f",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -130,7 +131,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "5b72babd",
++   "id": "7bc815b9",
+    "metadata": {},
+    "source": [
+     "## Data prep"
+@@ -138,257 +139,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 197,
+-   "id": "e68e424b",
+-   "metadata": {},
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/html": [
+-       "<div>\n",
+-       "<style scoped>\n",
+-       "    .dataframe tbody tr th:only-of-type {\n",
+-       "        vertical-align: middle;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe tbody tr th {\n",
+-       "        vertical-align: top;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe thead th {\n",
+-       "        text-align: right;\n",
+-       "    }\n",
+-       "</style>\n",
+-       "<table border=\"1\" class=\"dataframe\">\n",
+-       "  <thead>\n",
+-       "    <tr style=\"text-align: right;\">\n",
+-       "      <th></th>\n",
+-       "      <th>client_id</th>\n",
+-       "      <th>agrmnt_start_dt</th>\n",
+-       "      <th>agrmnt_close_dt</th>\n",
+-       "      <th>crncy_cd</th>\n",
+-       "      <th>agrmnt_rate_active</th>\n",
+-       "      <th>agrmnt_rate_passive</th>\n",
+-       "      <th>agrmnt_sum_rur</th>\n",
+-       "      <th>prod_type_name</th>\n",
+-       "    </tr>\n",
+-       "  </thead>\n",
+-       "  <tbody>\n",
+-       "    <tr>\n",
+-       "      <th>0</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2010-08-12</td>\n",
+-       "      <td>2014-10-30</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>1</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2013-02-15</td>\n",
+-       "      <td>2013-08-16</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>2</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2013-08-16</td>\n",
+-       "      <td>2014-02-14</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>3</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>4</th>\n",
+-       "      <td>7513301859607023584</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>2015-07-12</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>Cash on demand</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>...</th>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>...</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109011</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109012</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2018-07-03</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>3.25</td>\n",
+-       "      <td>13089.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109013</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>2011-08-10</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>0.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109014</th>\n",
+-       "      <td>-8242641659611256965</td>\n",
+-       "      <td>2011-08-23</td>\n",
+-       "      <td>2012-09-18</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>7.00</td>\n",
+-       "      <td>5403.0</td>\n",
+-       "      <td>POST OFFICE</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>109015</th>\n",
+-       "      <td>-4636514022054340174</td>\n",
+-       "      <td>2014-06-09</td>\n",
+-       "      <td>2017-07-31</td>\n",
+-       "      <td>810.0</td>\n",
+-       "      <td>18.75</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>3299986.0</td>\n",
+-       "      <td>Mortgage plus</td>\n",
+-       "    </tr>\n",
+-       "  </tbody>\n",
+-       "</table>\n",
+-       "<p>109016 rows × 8 columns</p>\n",
+-       "</div>"
+-      ],
+-      "text/plain": [
+-       "                  client_id agrmnt_start_dt agrmnt_close_dt  crncy_cd  \\\n",
+-       "0       7513301859607023584      2010-08-12      2014-10-30     810.0   \n",
+-       "1       7513301859607023584      2013-02-15      2013-08-16     810.0   \n",
+-       "2       7513301859607023584      2013-08-16      2014-02-14     810.0   \n",
+-       "3       7513301859607023584      2015-07-12      2015-07-12     810.0   \n",
+-       "4       7513301859607023584      2015-07-12      2015-07-12     810.0   \n",
+-       "...                     ...             ...             ...       ...   \n",
+-       "109011 -8242641659611256965      2011-08-10      2011-08-10     810.0   \n",
+-       "109012 -8242641659611256965      2011-08-10      2018-07-03     810.0   \n",
+-       "109013 -8242641659611256965      2011-08-10      2011-08-10     810.0   \n",
+-       "109014 -8242641659611256965      2011-08-23      2012-09-18     810.0   \n",
+-       "109015 -4636514022054340174      2014-06-09      2017-07-31     810.0   \n",
+-       "\n",
+-       "        agrmnt_rate_active  agrmnt_rate_passive  agrmnt_sum_rur  \\\n",
+-       "0                      NaN                  NaN             0.0   \n",
+-       "1                      NaN                  NaN             0.0   \n",
+-       "2                      NaN                  NaN             0.0   \n",
+-       "3                      NaN                  NaN             0.0   \n",
+-       "4                      NaN                  NaN             0.0   \n",
+-       "...                    ...                  ...             ...   \n",
+-       "109011                 NaN                  NaN             0.0   \n",
+-       "109012                 NaN                 3.25         13089.0   \n",
+-       "109013                 NaN                  NaN             0.0   \n",
+-       "109014                 NaN                 7.00          5403.0   \n",
+-       "109015               18.75                  NaN       3299986.0   \n",
+-       "\n",
+-       "        prod_type_name  \n",
+-       "0       Cash on demand  \n",
+-       "1       Cash on demand  \n",
+-       "2       Cash on demand  \n",
+-       "3       Cash on demand  \n",
+-       "4       Cash on demand  \n",
+-       "...                ...  \n",
+-       "109011     POST OFFICE  \n",
+-       "109012     POST OFFICE  \n",
+-       "109013     POST OFFICE  \n",
+-       "109014     POST OFFICE  \n",
+-       "109015   Mortgage plus  \n",
+-       "\n",
+-       "[109016 rows x 8 columns]"
+-      ]
+-     },
+-     "execution_count": 197,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "source": [
+-    "deals"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 198,
+-   "id": "3b3d432f",
+-   "metadata": {},
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/plain": [
+-       "client_id\n",
+-       "-9221941791080978530    0.000000e+00\n",
+-       "-9220369594510368140    6.634224e+07\n",
+-       "-9220236243053692422    0.000000e+00\n",
+-       "-9220233431709087652    9.242713e+04\n",
+-       "-9219699286371310531    0.000000e+00\n",
+-       "                            ...     \n",
+-       " 9218801691173598782    2.723500e+03\n",
+-       " 9219024469308275500    0.000000e+00\n",
+-       " 9219968212912398941    0.000000e+00\n",
+-       " 9220335314469087849    9.004667e+03\n",
+-       " 9223107459698100059    0.000000e+00\n",
+-       "Name: agrmnt_sum_rur, Length: 18652, dtype: float64"
+-      ]
+-     },
+-     "execution_count": 198,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "source": [
+-    "deals.groupby('client_id')['agrmnt_sum_rur'].mean()"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 199,
+-   "id": "04fb0df4",
++   "execution_count": 6,
++   "id": "a9c44977",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -439,20 +191,20 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 200,
+-   "id": "f4f41918",
++   "execution_count": 20,
++   "id": "cdbb9653",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "# data merge\n",
+-    "\n",
++    "data = funnel.copy()\n",
+     "data = funnel.merge(client, on=['client_id'])"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 201,
+-   "id": "7ec45aaa",
++   "id": "0b84a5f6",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -469,39 +221,43 @@
+     "# create features\n",
+     "\n",
+     "data = create_features_transactions(data)\n",
+-    "data = create_feautures_payments(data)"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 212,
+-   "id": "879628ba",
+-   "metadata": {},
+-   "outputs": [],
+-   "source": [
++    "data = create_feautures_payments(data)\n",
+     "data = create_features_deals(data)"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 213,
+-   "id": "bf6b5886",
++   "execution_count": 21,
++   "id": "43e3f229",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "most_common_txn_comment_1 is missing\n",
++      "most_common_txn_city is missing\n",
++      "most_common_txn_country is missing\n"
++     ]
++    }
++   ],
+    "source": [
+     "# data encode\n",
+     "\n",
+     "le = LabelEncoder()\n",
+     "fill_cols = ['gender', 'citizenship', 'education', 'job_type', 'most_common_txn_comment_1', 'most_common_txn_city', 'most_common_txn_country']\n",
+     "for col in fill_cols:\n",
+-    "    data[col] = le.fit_transform(data[col].astype(str))\n",
+-    "    joblib.dump(le, OUTPUT_PATH / 'preprocessors' / f'{col}.pkl')"
++    "    try:\n",
++    "        data[col] = le.fit_transform(data[col].astype(str))\n",
++    "        joblib.dump(le, OUTPUT_PATH / 'preprocessors' / f'{col}.pkl')\n",
++    "    except:\n",
++    "        print(f'{col} is missing')"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 214,
+-   "id": "3b7b4e1b",
++   "execution_count": 22,
++   "id": "a69193a4",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -511,7 +267,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "a3e970ff",
++   "id": "f43fa377",
+    "metadata": {},
+    "source": [
+     "## Train"
+@@ -519,8 +275,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 215,
+-   "id": "946efecc",
++   "execution_count": 23,
++   "id": "717d3a15",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -540,8 +296,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 216,
+-   "id": "3b58eae9",
++   "execution_count": 24,
++   "id": "5abceb2a",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -567,8 +323,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 217,
+-   "id": "2e32bdc6",
++   "execution_count": 25,
++   "id": "75fe750c",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -638,8 +394,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 218,
+-   "id": "c1241f23",
++   "execution_count": 26,
++   "id": "2a01cfe4",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -655,8 +411,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 219,
+-   "id": "5511266f",
++   "execution_count": 27,
++   "id": "45417ea2",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -669,8 +425,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 220,
+-   "id": "03fca335",
++   "execution_count": 28,
++   "id": "01190d88",
+    "metadata": {},
+    "outputs": [
+     {
+@@ -710,17 +466,17 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 221,
+-   "id": "f6669fe9",
++   "execution_count": 29,
++   "id": "51165989",
+    "metadata": {},
+    "outputs": [
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "Public ANIC 5365.358979905113 Private ANIC 5653.409841613172\n",
+-      "ANIC 5557.392887710485\n",
+-      "Accuracy score: 0.8324495301888548\n"
++      "Public ANIC 5382.663222160207 Private ANIC 5689.263494278538\n",
++      "ANIC 5587.063403572427\n",
++      "Accuracy score: 0.8266815517722579\n"
+      ]
+     }
+    ],
+@@ -733,8 +489,8 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 211,
+-   "id": "2947797d",
++   "execution_count": 30,
++   "id": "b080eb80",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -745,8 +501,19 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 22,
+-   "id": "da160a13",
++   "execution_count": null,
++   "id": "5e82156f",
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "if make_submission:\n",
++    "    public_anic = int"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 31,
++   "id": "b26595ef",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -757,7 +524,7 @@
+   {
+    "cell_type": "code",
+    "execution_count": 23,
+-   "id": "b4fdd17c",
++   "id": "acfa8664",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+diff --git a/wandb/latest-run b/wandb/latest-run
+index 84eec06..9834c83 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20210417_121938-1m2lz99f
+\ No newline at end of file
++run-20210417_144414-36viqhb6
+\ No newline at end of file
