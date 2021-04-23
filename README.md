@@ -1,7 +1,7 @@
 # IDAO 2021 Final Stage
 **Team: CHAD DATA SCIENTISTS**
 
-**Solution scored --- on private. Kth Place**
+**Solution scored 5813 on private. 6th Place**
 
 
 * KUDOS to my teammates:
